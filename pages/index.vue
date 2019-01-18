@@ -6,28 +6,42 @@
 export default {
   async mounted() {
     const PIXI = await import('pixi.js')
-    const app = new PIXI.Application(800, 600, { backgroundColor: 0x1099bb })
+    var app = new PIXI.Application()
     document.body.appendChild(app.view)
 
-    // create a new Sprite from an image path
-    const bunny = PIXI.Sprite.fromImage('/bunny.png')
+    PIXI.loader.add('/fighter.json').load(onAssetsLoaded)
 
-    // center the sprite's anchor point
-    bunny.anchor.set(0.5)
+    function onAssetsLoaded() {
+      // create an array of textures from an image path
+      var frames = []
 
-    // move the sprite to the center of the screen
-    bunny.x = app.screen.width / 2
-    bunny.y = app.screen.height / 2
+      for (var i = 0; i < 30; i++) {
+        var val = i < 10 ? '0' + i : i
 
-    app.stage.addChild(bunny)
+        // magically works since the spritesheet was loaded with the pixi loader
+        frames.push(PIXI.Texture.fromFrame('rollSequence00' + val + '.png'))
+      }
 
-    // Listen for animate update
-    app.ticker.add(function(delta) {
-      // just for fun, let's rotate mr rabbit a little
-      // delta is 1 if running at 100% performance
-      // creates frame-independent transformation
-      bunny.rotation += 0.1 * delta
-    })
+      // create an AnimatedSprite (brings back memories from the days of Flash, right ?)
+      var anim = new PIXI.extras.AnimatedSprite(frames)
+
+      /*
+       * An AnimatedSprite inherits all the properties of a PIXI sprite
+       * so you can change its position, its anchor, mask it, etc
+       */
+      anim.x = app.screen.width / 2
+      anim.y = app.screen.height / 2
+      anim.anchor.set(0.5)
+      anim.animationSpeed = 0.5
+      anim.play()
+
+      app.stage.addChild(anim)
+
+      // Animate the rotation
+      app.ticker.add(function() {
+        anim.rotation += 0.01
+      })
+    }
   }
 }
 </script>
